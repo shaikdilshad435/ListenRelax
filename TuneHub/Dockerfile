@@ -1,19 +1,19 @@
-FROM eclipse-temurin:17-jdk-jammy
-
+# ---------- BUILD STAGE ----------
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copy project files
-COPY . .
+COPY pom.xml .
+COPY src ./src
 
-# Fix mvnw permission (VERY IMPORTANT)
-RUN chmod +x mvnw
+RUN mvn clean package -DskipTests
 
-# Build jar
-RUN ./mvnw clean package -DskipTests
+# ---------- RUN STAGE ----------
+FROM eclipse-temurin:17-jdk-jammy
+WORKDIR /app
 
-# Expose Render port
+COPY --from=build /app/target/TuneHub-0.0.1-SNAPSHOT.jar app.jar
+
 EXPOSE 8080
 ENV PORT=8080
 
-# Run Spring Boot
-CMD ["java", "-jar", "target/TuneHub-0.0.1-SNAPSHOT.jar"]
+CMD ["java","-jar","app.jar"]
