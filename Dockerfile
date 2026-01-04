@@ -1,20 +1,21 @@
-# Dockerfile for Spring Boot TuneHub app
-FROM eclipse-temurin:17-jdk
+# Base image with OpenJDK 17
+FROM eclipse-temurin:17-jdk-jammy
 
+# Set working directory
 WORKDIR /app
 
-# Copy the Spring Boot project
-COPY TuneHub/ .
+# Copy project files
+COPY pom.xml .
+COPY src ./src
 
-# Give execute permission to mvnw
-RUN chmod +x mvnw
-
-# Build the project without tests
+# Build the project using Maven wrapper
 RUN ./mvnw clean package -DskipTests
 
-# Expose port (Render will assign dynamic PORT)
+# Expose the app port
 EXPOSE 8080
-ENV SERVER_PORT=$PORT
 
-# Run the exact JAR file produced by Maven
+# Set environment variable for Render
+ENV PORT=8080
+
+# Run the Spring Boot JAR
 CMD ["java", "-jar", "target/TuneHub-0.0.1-SNAPSHOT.jar"]
