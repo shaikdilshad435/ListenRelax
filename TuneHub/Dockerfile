@@ -1,24 +1,17 @@
-# ==============================
-# SERVER CONFIGURATION
-# ==============================
-server.port=${PORT:8080}
+FROM maven:3.9.6-eclipse-temurin-17 AS build
+WORKDIR /app
 
-# ==============================
-# H2 DATABASE
-# ==============================
-spring.datasource.url=jdbc:h2:mem:tunehubdb
-spring.datasource.driver-class-name=org.h2.Driver
-spring.datasource.username=sa
-spring.datasource.password=
+COPY pom.xml .
+COPY src ./src
 
-spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
-spring.jpa.hibernate.ddl-auto=update
+RUN mvn clean package -DskipTests
 
-spring.h2.console.enabled=true
-spring.h2.console.path=/h2-console
+FROM eclipse-temurin:17-jdk-jammy
+WORKDIR /app
 
-# ==============================
-# JPA / HIBERNATE
-# ==============================
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
+COPY --from=build /app/target/TuneHub-0.0.1-SNAPSHOT.jar app.jar
+
+EXPOSE 8080
+ENV PORT=8080
+
+CMD ["java","-jar","app.jar"]
