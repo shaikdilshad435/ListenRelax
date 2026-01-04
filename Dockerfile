@@ -1,21 +1,30 @@
-# Base image with OpenJDK 17
+# Use Java 17 base image
 FROM eclipse-temurin:17-jdk-jammy
 
 # Set working directory
 WORKDIR /app
 
-# Copy project files
-COPY pom.xml .
-COPY src ./src
+# Copy Maven wrapper and pom.xml to download dependencies (optional)
+COPY mvnw mvnw
+COPY mvnw.cmd mvnw.cmd
+COPY .mvn .mvn
+COPY pom.xml pom.xml
 
-# Build the project using Maven wrapper
+# Download dependencies
+RUN ./mvnw dependency:go-offline -B
+
+# Copy source code
+COPY src src
+
+# Build the JAR
 RUN ./mvnw clean package -DskipTests
 
-# Expose the app port
-EXPOSE 8080
+# Copy the built jar to root
+RUN cp target/TuneHub-0.0.1-SNAPSHOT.jar TuneHub.jar
 
-# Set environment variable for Render
+# Expose port
+EXPOSE 8080
 ENV PORT=8080
 
-# Run the Spring Boot JAR
-CMD ["java", "-jar", "target/TuneHub-0.0.1-SNAPSHOT.jar"]
+# Start the app
+CMD ["java", "-jar", "TuneHub.jar"]
